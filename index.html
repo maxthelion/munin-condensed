@@ -64,7 +64,7 @@
     'load-week',
   ]
   var urlTemplate = ""
-  var localStorageVersion = 6
+  var localStorageVersion = 7
   
   function fetchSettings(){
     var localIDs = localStorage[ localStorageVersion + 'ids']
@@ -83,6 +83,11 @@
     } else {
       showConfigForm();
     }
+    $('#graphSelect').change(function(){
+      var type = $(this).val()
+      window.location.hash = type
+      createGraphs(ids, urlTemplate)
+    })
     $('#editConfig').click(function(){
       showConfigForm();
       return false
@@ -156,11 +161,6 @@
     for (var i=0; i < labels.length; i++) {
       $('#graphSelect').append( $('<option value="'+labels[i]+'">'+labels[i]+'</option>') )
     };
-    $('#graphSelect').change(function(){
-      var type = $(this).val()
-      window.location.hash = type
-      createGraphs(ids, urlTemplate)
-    })
   }
   
   function drawCroppedGraph(data) {  
