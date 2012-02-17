@@ -1,0 +1,162 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+  <style type="text/css" media="screen">
+    * {
+      font-family: arial;
+    }
+    .holder{
+      float: left;
+      width: 440px;
+      position: relative;
+    }
+    .label {
+      position: absolute;
+      font-size: 5em;
+      opacity: 0.4;
+      width:40px;
+      left: 200px;
+    }
+    form *{
+      font-size: 2em;
+    }
+  </style>
+</head>
+<body>
+<div id="controls">
+  <form action="" method="GET">
+    <select name="foo"  id="graphSelect">
+    </select>
+  </form>
+  
+  <form action="" method="GET" id="configForm">
+    <input placeholder="url template (with {ID} and {TYPE})" name="urlTemplateField" id="urlTemplateField" />
+    <textarea id="idList"></textarea>
+    <input type="submit">
+  </form>
+  <a href="#" id="editConfig">Edit</a>
+</div>
+<div id="foo"></div>
+
+
+<script type="text/javascript" charset="utf-8">
+
+  var ids = [];
+  
+  var labels = [
+    'memory-week',
+    'memory-day',
+    'cpu-day',
+    'cpu-week',
+    'load-day',
+    'load-week',
+  ]
+  var urlTemplate = ""
+  var localStorageVersion = 5
+  
+  function fetchSettings(){
+    var localIDs = localStorage[ localStorageVersion + 'ids']
+    if (localIDs)
+      ids = JSON.parse(localIDs)
+      
+    var localUrlTemplate = localStorage[ localStorageVersion + 'urlTemplate']
+    if (localUrlTemplate)
+      urlTemplate = JSON.parse(localUrlTemplate)
+  }
+  
+  $().ready(function(){
+    drawSelect()
+    fetchSettings()
+    if (ids && urlTemplate){
+      $('#configForm').hide();
+      createGraphs(ids, urlTemplate)      
+    } else {
+      showConfigForm();
+    }
+    $('#editConfig').click(function(){
+      showConfigForm();
+      return false
+    })
+  })
+  
+  function showConfigForm(){
+    $('#configForm').show();
+    $('#configForm').find('#idList').val(ids.join(','))
+    $('#configForm').find('#urlTemplateField').val(urlTemplate)
+    
+    $('#configForm').submit(function(){
+      var idString = $(this).find('#idList').val()
+      var urlString = $(this).find('#urlTemplateField').val()
+      if(idString != "" && urlString != ""){
+        ids = idString.split(',') 
+        urlTemplate  = urlString
+        localStorage[ localStorageVersion + 'ids'] = JSON.stringify( ids )
+        localStorage[ localStorageVersion + 'urlTemplate'] = JSON.stringify( urlTemplate )
+        $(this).hide()
+        createGraphs(ids, urlTemplate);
+      }
+      return false;
+    })
+  }
+  
+  function createGraphs(ids, urlTemplate){
+    if (window.location.hash != ""){
+      var type = window.location.hash.replace(/#/g, '')
+      var urls = generateUrls(ids, type, urlTemplate)
+      drawGraphs(urls)
+    }
+  }
+  
+  function generateUrls(ids, type, urlTemplate){
+    var urls = []
+    for (var i=0; i < ids.length; i++) {
+      var data = {}
+      data.url = imgUrl(ids[i], type)
+      data.label = ids[i]
+      urls.push(data)
+    }
+    return urls
+  }
+  
+  function imgUrl(id, type){
+    return urlTemplate.replace(/\{ID\}/g, id).replace(/\{TYPE\}/g, type)
+  }
+  
+  function drawGraphs(urls){
+    $('#foo').empty();
+    for (var i=0; i < urls.length; i++) {
+      drawCroppedGraph(urls[i])
+    };
+  }
+  
+  function drawSelect(){
+    for (var i=0; i < labels.length; i++) {
+      $('#graphSelect').append( $('<option value="'+labels[i]+'">'+labels[i]+'</option>') )
+    };
+    $('#graphSelect').change(function(){
+      var type = $(this).val()
+      window.location.href = window.location.href.replace(/#.*/g, '#'+ type);
+      createGraphs(ids, urlTemplate)
+    })
+  }
+  
+  function drawCroppedGraph(data) {  
+    var canvas = $('<canvas>')
+    canvas[0].width = 440
+    canvas[0].height = 190
+    var holder = $('<div class="holder"></div>')
+    if (data.label)
+      holder.append($('<span class="label">'+data.label+'</span>'))
+    holder.append(canvas)
+    $('#foo').append(holder)
+    var ctx = canvas[0].getContext('2d');  
+    var img = new Image();  
+    img.onload = function(){  
+      ctx.drawImage(img, 40,30, 440, 190, 0, 0, 440, 190);  
+    };  
+    img.src = data.url;  
+  }
+</script>
+</body>
+</html>
+
