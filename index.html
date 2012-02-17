@@ -17,22 +17,34 @@
       width:40px;
       left: 200px;
     }
-    form *{
+    form input, form textarea{
       font-size: 2em;
     }
+    #urlTemplateField {
+      width: 100%;
+    }
+    #idList {
+      width: 100%;
+    }
+
   </style>
 </head>
 <body>
 <div id="controls">
-  <form action="" method="GET">
+  <form action="" method="GET" id="typeSelectorForm">
     <select name="foo"  id="graphSelect">
     </select>
   </form>
   
   <form action="" method="GET" id="configForm">
-    <input placeholder="url template (with {ID} and {TYPE})" name="urlTemplateField" id="urlTemplateField" />
-    <textarea id="idList"></textarea>
-    <input type="submit">
+    <h2>Edit your settings</h2>
+    <p><label>Create a template URL for your munin graph images</label><br>
+    <input name="urlTemplateField" placeholder="eg: 'https://yourdomain.com/cgi-bin/munin/munin-cgi-graph/env/{ID}/{TYPE}.png'" id="urlTemplateField" />
+    </p>
+    <p><label>List the ids of boxes you want to see</label><br>
+    <input id="idList" placeholder="separate with commas, no spaces" />
+    </p>
+    <input type="submit" value="save">
   </form>
   <a href="#" id="editConfig">Edit</a>
 </div>
@@ -52,7 +64,7 @@
     'load-week',
   ]
   var urlTemplate = ""
-  var localStorageVersion = 5
+  var localStorageVersion = 6
   
   function fetchSettings(){
     var localIDs = localStorage[ localStorageVersion + 'ids']
@@ -65,11 +77,9 @@
   }
   
   $().ready(function(){
-    drawSelect()
     fetchSettings()
     if (ids && urlTemplate){
-      $('#configForm').hide();
-      createGraphs(ids, urlTemplate)      
+      drawMain(ids, urlTemplate)
     } else {
       showConfigForm();
     }
@@ -79,21 +89,30 @@
     })
   })
   
+  function drawMain(ids, urlTemplate){
+    drawSelect()
+    $('#configForm').hide();
+    $('#editConfig').show();
+    createGraphs(ids, urlTemplate)
+  }
+  
   function showConfigForm(){
     $('#configForm').show();
     $('#configForm').find('#idList').val(ids.join(','))
     $('#configForm').find('#urlTemplateField').val(urlTemplate)
+    $('#editConfig').hide();
+    $('#typeSelectorForm').hide();
     
     $('#configForm').submit(function(){
       var idString = $(this).find('#idList').val()
       var urlString = $(this).find('#urlTemplateField').val()
       if(idString != "" && urlString != ""){
-        ids = idString.split(',') 
-        urlTemplate  = urlString
+        var ids = idString.split(/,\s*/g) 
+        var urlTemplate  = urlString
         localStorage[ localStorageVersion + 'ids'] = JSON.stringify( ids )
         localStorage[ localStorageVersion + 'urlTemplate'] = JSON.stringify( urlTemplate )
         $(this).hide()
-        createGraphs(ids, urlTemplate);
+        drawMain(ids, urlTemplate);
       }
       return false;
     })
@@ -132,6 +151,8 @@
   }
   
   function drawSelect(){
+    $('#typeSelectorForm').show();
+    $('#graphSelect').empty();
     for (var i=0; i < labels.length; i++) {
       $('#graphSelect').append( $('<option value="'+labels[i]+'">'+labels[i]+'</option>') )
     };
