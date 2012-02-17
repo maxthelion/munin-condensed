@@ -104,6 +104,8 @@
       var type = window.location.hash.replace(/#/g, '')
       var urls = generateUrls(ids, type, urlTemplate)
       drawGraphs(urls)
+    } else {
+      $('#foo').append('please select a monitor type from the list above')
     }
   }
   
@@ -135,7 +137,7 @@
     };
     $('#graphSelect').change(function(){
       var type = $(this).val()
-      window.location.href = window.location.href.replace(/#.*/g, '#'+ type);
+      window.location.hash = type
       createGraphs(ids, urlTemplate)
     })
   }
