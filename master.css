@@ -1,0 +1,24 @@
+* {
+  font-family: arial;
+}
+.holder{
+  float: left;
+  width: 440px;
+  position: relative;
+}
+.label {
+  position: absolute;
+  font-size: 5em;
+  opacity: 0.4;
+  width:40px;
+  left: 200px;
+}
+form input, form textarea{
+  font-size: 2em;
+}
+#urlTemplateField {
+  width: 100%;
+}
+#idList, #monitorList {
+  width: 100%;
+}

@@ -1,0 +1,103 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="link_store.js" type="text/javascript" charset="utf-8"></script>
+  <script src="graph_grid.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" href="master.css" type="text/css" media="screen" title="no title" charset="utf-8">
+</head>
+<body>
+<div id="controls">
+  <form action="" method="GET" id="typeSelectorForm">
+    <select name="foo"  id="graphSelect">
+    </select>
+  </form>
+  
+  <form action="" method="GET" id="configForm">
+    <h2>Edit your settings</h2>
+    <p><label>Create a template URL for your munin graph images</label><br>
+    <input name="urlTemplateField" placeholder="eg: 'https://yourdomain.com/cgi-bin/munin/munin-cgi-graph/env/{ID}/{TYPE}.png'" id="urlTemplateField" />
+    </p>
+    <p><label>List the monitors</label><br>
+    <input id="monitorList" placeholder="separate with commas, no spaces" />
+    </p>
+    <p><label>List the ids of boxes you want to see</label><br>
+    <input id="idList" placeholder="separate with commas, no spaces" />
+    </p>
+    <input type="submit" value="save">
+  </form>
+  <a href="#" id="editConfig">Edit</a>
+</div>
+<div id="foo"></div>
+
+
+<script type="text/javascript" charset="utf-8">
+  var linkStore = new LinkStore()
+  var graphGrid
+  linkStore.onLoad(function(ls){
+    if (ls._data.ids && ls._data.urlTemplate && ls._data.monitors){
+      drawSelect(linkStore._data.monitors)
+      graphGrid = new GraphGrid(linkStore)
+      $('#configForm').hide();
+      $('#editConfig').show();
+    } else {
+      showConfigForm();
+    }
+  })
+  
+  $().ready(function(){
+    $('#editConfig').click(function(){
+      showConfigForm();
+      return false
+    })
+  })
+  
+  function showConfigForm(){
+    $('#configForm').show();
+    if(linkStore._data.ids)
+      $('#configForm').find('#idList').val(linkStore._data.ids.join(','))
+    if (linkStore._data.monitors)
+      $('#configForm').find('#monitorList').val(linkStore._data.monitors.join(','))
+    $('#configForm').find('#urlTemplateField').val(linkStore._data.urlTemplate)
+    $('#editConfig').hide();
+    $('#typeSelectorForm').hide();
+    
+    $('#configForm').submit(function(){
+      try {
+      var idString = $(this).find('#idList').val()
+      var monitorString = $(this).find('#monitorList').val()
+      var urlString = $(this).find('#urlTemplateField').val()
+      if(idString != "" && urlString != ""){
+        linkStore._data.ids = idString.split(/,\s*/g) 
+        linkStore._data.monitors = monitorString.split(/,\s*/g) 
+        linkStore._data.urlTemplate = urlString
+        linkStore.save();
+        $(this).hide()
+        graphGrid.redraw()
+        $('#configForm').hide();
+        $('#editConfig').show();
+      }
+      return false;
+      } catch(err) {
+        console.log(err.message, err.stack)
+        return false
+      }
+    })
+  }
+  
+  function drawSelect(monitors){
+    $('#typeSelectorForm').show();
+    $('#graphSelect').empty();
+    monitors.forEach(function(monitor){
+      $('#graphSelect').append( $('<option value="'+monitor+'">'+monitor+'</option>') )
+    });
+    $('#graphSelect').change(function(){
+      linkStore._data.monitor = $(this).val();
+      linkStore.save();
+      graphGrid.redraw();
+    })
+  }
+  
+
+</script>
+</body>
+</html>
