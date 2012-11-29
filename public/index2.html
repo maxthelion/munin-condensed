@@ -1,0 +1,140 @@
+<html>
+<head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+  <style type="text/css" media="screen">
+    * {
+      font-family: arial;
+    }
+    .holder{
+      float: left;
+      width: 440px;
+      position: relative;
+    }
+    .label {
+      position: absolute;
+      font-size: 5em;
+      opacity: 0.4;
+      width:40px;
+      left: 10px;
+
+    }
+    form input, form textarea{
+      font-size: 2em;
+    }
+    #urlTemplateField {
+      width: 100%;
+    }
+    #idList {
+      width: 100%;
+    }
+
+  </style>
+</head>
+<body>
+<div id="controls">
+  <form action="" method="GET" id="typeSelectorForm">
+    <select name="foo"  id="graphSelect">
+    </select>
+  </form>
+</div>
+<div id="foo"></div>
+
+
+<script type="text/javascript" charset="utf-8">
+
+  var ids = [];
+  
+  var labels = [
+    'memory-week',
+    'memory-day',
+    'cpu-day',
+    'cpu-week',
+    'load-day',
+    'load-week',
+  ]
+  
+  $().ready(function(){
+    var urls = []
+    $.ajax({
+      url: 'http://servers.pusher.com:8082/production/',
+      success: function(data){
+        drawMain(data)
+      },
+      error: function(){
+        drawMain(urls);
+      }
+    })
+    $('#graphSelect').change(function(){
+      var type = $(this).val()
+      window.location.hash = type
+      createGraphs(urls)
+    })
+  })
+  
+  function drawMain(urls){
+    drawSelect()
+    $('#configForm').hide();
+    $('#editConfig').show();
+    createGraphs(urls)
+  }
+  
+  function createGraphs(urls){
+    if (window.location.hash != ""){
+      var type = window.location.hash.replace(/#/g, '')
+      drawGraphs( generateUrls(urls, type) )
+    } else {
+      $('#foo').append('please select a monitor type from the list above')
+    }
+  }
+  
+  function generateUrls(urls, type, urlTemplate){
+    var newUrls = []
+    for (var i=0; i < urls.length; i++) {
+      var data = {}
+      data.url = imgUrl(urls[i], type)
+      data.label = urls[i].replace(/^([^.]+).*$/, "$1")
+      newUrls.push(data)
+    }
+    return newUrls
+  }
+  
+  function imgUrl(url, type){
+    return "http://operations.pusherapp.com/cgi-bin/munin2/munin-cgi-graph/production/{ID}/{TYPE}.png".replace(/\{ID\}/g, url).replace(/\{TYPE\}/g, type)
+  }
+  
+  function drawGraphs(urls){
+    $('#foo').empty();
+    for (var i=0; i < urls.length; i++) {
+      drawCroppedGraph(urls[i])
+    };
+  }
+  
+  function drawSelect(){
+    $('#typeSelectorForm').show();
+    $('#graphSelect').empty();
+    for (var i=0; i < labels.length; i++) {
+      $('#graphSelect').append( $('<option value="'+labels[i]+'">'+labels[i]+'</option>') )
+    };
+  }
+  
+  function drawCroppedGraph(data) {  
+    var canvas = $('<canvas>')
+    canvas[0].width = 440
+    canvas[0].height = 190
+    var holder = $('<div class="holder"></div>')
+    if (data.label){
+      holder.append($('<span class="label">'+data.label+'</span>'))
+    }
+    holder.append(canvas)
+    $('#foo').append(holder)
+    var ctx = canvas[0].getContext('2d');  
+    var img = new Image();  
+    img.onload = function(){  
+      ctx.drawImage(img, 40,30, 440, 190, 0, 0, 440, 190);  
+    };  
+    img.src = data.url;  
+  }
+</script>
+</body>
+</html>
+
