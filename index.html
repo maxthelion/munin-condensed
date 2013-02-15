@@ -35,8 +35,6 @@
 <body>
 <div id="controls">
   <form action="" method="GET" id="typeSelectorForm">
-    <select name="type"  id="graphSelect">
-    </select>
     <select name="role"  id="roleSelect">
       <option value="all">ALL</option>
       <option value="vm">VM</option>
@@ -45,6 +43,8 @@
       <option value="pubsub">PUBSUB</option>
       <option value="lb">LB</option>
       <option value="redis">REDIS</option>
+    </select>
+    <select name="type"  id="graphSelect">
     </select>
   </form>
 </div>
@@ -58,7 +58,7 @@
     drawMain(data)
   }
 
-  var type
+  var type, role
   var ids = [];
   
   var labels = [
@@ -95,12 +95,15 @@
     })
     
     $('#graphSelect').change(function(){
-      var type = $(this).val()
-      window.location.hash = type
+      type = $(this).val()
+      if (role)
+        window.location.hash = "/"+role+"/"+ type
+      else
+        window.location.hash = type
     })
     
     $('#roleSelect').change(function(){
-      var role = $(this).val()
+      role = $(this).val()
       window.location.hash = "/"+role+"/"+ type
     })
   })
