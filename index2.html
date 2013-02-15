@@ -1,6 +1,8 @@
 <html>
 <head>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+  <script src="javascripts/lib/davis.min.js"></script>
+  <script src="javascripts/lib/davis-hashrouting.js"></script>
   <style type="text/css" media="screen">
     * {
       font-family: arial;
@@ -33,7 +35,16 @@
 <body>
 <div id="controls">
   <form action="" method="GET" id="typeSelectorForm">
-    <select name="foo"  id="graphSelect">
+    <select name="type"  id="graphSelect">
+    </select>
+    <select name="role"  id="roleSelect">
+      <option value="all">ALL</option>
+      <option value="vm">VM</option>
+      <option value="edge">EDGE</option>
+      <option value="rest">REST</option>
+      <option value="pubsub">PUBSUB</option>
+      <option value="lb">LB</option>
+      <option value="redis">REDIS</option>
     </select>
   </form>
 </div>
@@ -43,9 +54,11 @@
 <script type="text/javascript" charset="utf-8">
   var urls
   function getUrls(data){
+    urls = data
     drawMain(data)
   }
 
+  var type
   var ids = [];
   
   var labels = [
@@ -58,23 +71,47 @@
   ]
   
   $().ready(function(){
+
+    Davis.extend( Davis.hashRouting({forceHashRouting: true}) )
+
+    var app = Davis(function () {
+      this.settings.generateRequestOnPageLoad = true
+
+      this.get(':type', function (req) {
+        type = req.params['type']
+        createGraphs(urls, type)
+      })
+      
+      this.get('/:role/:type', function (req) {
+        type = req.params['type']
+        var role = req.params['role']
+        if (role != 'all') {
+          createGraphs( urls.filter(function(url){ return url.indexOf( role ) != -1 }), type)
+        } else {
+          createGraphs( urls, type)
+        }
+      })
+      
+    })
+    
     $('#graphSelect').change(function(){
       var type = $(this).val()
       window.location.hash = type
-      createGraphs(urls)
+    })
+    
+    $('#roleSelect').change(function(){
+      var role = $(this).val()
+      window.location.hash = "/"+role+"/"+ type
     })
   })
   
   function drawMain(urls){
     drawSelect()
-    $('#configForm').hide();
-    $('#editConfig').show();
     createGraphs(urls)
   }
   
-  function createGraphs(urls){
-    if (window.location.hash != ""){
-      var type = window.location.hash.replace(/#/g, '')
+  function createGraphs(urls, type){
+    if (type) {
       drawGraphs( generateUrls(urls, type) )
     } else {
       $('#foo').append('please select a monitor type from the list above')
