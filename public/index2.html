@@ -41,6 +41,10 @@
 
 
 <script type="text/javascript" charset="utf-8">
+  var urls
+  function getUrls(data){
+    drawMain(data)
+  }
 
   var ids = [];
   
@@ -54,16 +58,6 @@
   ]
   
   $().ready(function(){
-    var urls = []
-    $.ajax({
-      url: 'http://servers.pusher.com:8082/production/',
-      success: function(data){
-        drawMain(data)
-      },
-      error: function(){
-        drawMain(urls);
-      }
-    })
     $('#graphSelect').change(function(){
       var type = $(this).val()
       window.location.hash = type
@@ -99,7 +93,7 @@
   }
   
   function imgUrl(url, type){
-    return "http://operations.pusherapp.com/cgi-bin/munin2/munin-cgi-graph/production/{ID}/{TYPE}.png".replace(/\{ID\}/g, url).replace(/\{TYPE\}/g, type)
+    return "http://monitoring.pusher.com/cgi-bin/munin-cgi-graph/production/{ID}/{TYPE}.png".replace(/\{ID\}/g, url).replace(/\{TYPE\}/g, type)
   }
   
   function drawGraphs(urls){
@@ -135,6 +129,8 @@
     img.src = data.url;  
   }
 </script>
+  <script src="http://servers.pusher.com:8082/production/?callback=getUrls" type="text/javascript" charset="utf-8"></script>
+
 </body>
 </html>
 
