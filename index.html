@@ -10,7 +10,7 @@
     }
     .holder{
       float: left;
-      width: 460px;
+      width: 470px;
       position: relative;
     }
     .label {
@@ -18,7 +18,7 @@
       position: absolute;
       font-size: 5em;
       opacity: 0.5;
-      left: 50px;
+      left: 60px;
       bottom: 20px;
       text-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
     }
@@ -155,7 +155,7 @@
   
   function drawCroppedGraph(data) {  
     var canvas = $('<canvas>')
-    canvas[0].width = 460
+    canvas[0].width = 470
     canvas[0].height = 200
     var holder = $('<div class="holder"></div>')
     if (data.label){
@@ -166,7 +166,7 @@
     var ctx = canvas[0].getContext('2d');  
     var img = new Image();  
     img.onload = function(){  
-      ctx.drawImage(img, 20, 25, 460, 200, 0, 0, 460, 200);
+      ctx.drawImage(img, 5, 25, 470, 200, 0, 0, 470, 200);
     };  
     img.src = data.url;  
   }
